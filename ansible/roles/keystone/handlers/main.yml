@@ -26,21 +26,6 @@
     - kolla_action == "upgrade"
     - inventory_hostname == groups[service.group][0]
 
-- name: Restart keystone container
-  vars:
-    service_name: "keystone"
-    service: "{{ keystone_services[service_name] }}"
-  become: true
-  kolla_docker:
-    action: "recreate_or_restart_container"
-    common_options: "{{ docker_common_options }}"
-    name: "{{ service.container_name }}"
-    image: "{{ service.image }}"
-    volumes: "{{ service.volumes|reject('equalto', '')|list }}"
-    dimensions: "{{ service.dimensions }}"
-  when:
-    - kolla_action != "config"
-
 - name: Restart keystone-ssh container
   vars:
     service_name: "keystone-ssh"
@@ -59,6 +44,57 @@
 - name: Restart keystone-fernet container
   vars:
     service_name: "keystone-fernet"
+    service: "{{ keystone_services[service_name] }}"
+  become: true
+  kolla_docker:
+    action: "recreate_or_restart_container"
+    common_options: "{{ docker_common_options }}"
+    name: "{{ service.container_name }}"
+    image: "{{ service.image }}"
+    volumes: "{{ service.volumes|reject('equalto', '')|list }}"
+    dimensions: "{{ service.dimensions }}"
+  when:
+    - kolla_action != "config"
+
+- name: Waiting for Keystone SSH port to be UP
+  wait_for:
+    host: "{{ api_interface_address }}"
+    port: "{{ keystone_ssh_port }}"
+    connect_timeout: 1
+  register: check_keystone_ssh_port
+  until: check_keystone_ssh_port is success
+  retries: 10
+  delay: 5
+  listen: "Restart keystone container"
+  when:
+    - kolla_action in ["deploy", "reconfigure"]
+
+- name: Initialise fernet key authentication
+  become: true
+  command: >
+    docker exec -t keystone_fernet keystone-manage --config-file /etc/keystone/keystone.conf
+    fernet_setup --keystone-user {{ keystone_username }} --keystone-group {{ keystone_groupname }}
+  register: fernet_create
+  changed_when: fernet_create.stdout.find('Key repository is already initialized') == -1
+  until: fernet_create is success
+  retries: 10
+  delay: 5
+  run_once: True
+  delegate_to: "{{ groups['keystone'][0] }}"
+  listen: "Restart keystone container"
+  when:
+    - kolla_action in ["deploy", "reconfigure"]
+
+- name: Run key distribution
+  become: true
+  command: docker exec -t keystone_fernet /usr/bin/fernet-push.sh
+  run_once: True
+  listen: "Restart keystone container"
+  delegate_to: "{{ groups['keystone'][0] }}"
+
+- name: Restart keystone container
+  vars:
+    service_name: "keystone"
     service: "{{ keystone_services[service_name] }}"
   become: true
   kolla_docker:

@@ -33,4 +33,23 @@
   when:
     - not use_preconfigured_databases | bool
 
+- name: Checking for any running keystone_fernet containers
+  become: true
+  kolla_docker:
+    action: "get_container_state"
+    name: "keystone_fernet"
+  register: fernet_container_state
+  failed_when: false
+
+- block:
+    - name: Run key distribution when new host needs to be bootstrapped
+      command: docker exec -t keystone_fernet /usr/bin/fernet-push.sh
+      run_once: true
+      when: >
+        (groups['keystone'] | length) >
+        (ansible_play_hosts | map('extract', hostvars, 'fernet_container_state') |
+        selectattr('Status', 'equalto', 'running') | map(attribute='Status') | list | length)
+
+  when: not (fernet_container_state | select('match', 'No such container'))
+
 - include_tasks: bootstrap_service.yml
