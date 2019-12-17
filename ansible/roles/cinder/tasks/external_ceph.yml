@@ -7,6 +7,7 @@
   merge_configs:
     sources:
       - "{{ node_custom_config }}/cinder/ceph.conf"
+      - "{{ node_custom_config }}/cinder/{{ ansible_fqdn }}/ceph.conf"
       - "{{ node_custom_config }}/cinder/{{ item.key }}/ceph.conf"
     dest: "{{ node_config_directory }}/{{ item.key }}/ceph.conf"
     mode: "0660"
@@ -25,6 +26,9 @@
     dest: "{{ node_config_directory }}/cinder-volume/"
     mode: "0660"
   become: true
+  with_fileglob:
+    - "{{ node_custom_config }}/cinder/cinder-volume/ceph.client*"
+    - "{{ node_custom_config }}/cinder/{{ ansible_fqdn }}/cinder-volume/ceph.client*"
   when:
     - external_ceph_cephx_enabled | bool
     - inventory_hostname in groups['cinder-volume']
@@ -39,9 +43,9 @@
     mode: "0660"
   become: true
   register: cinder_backup_ceph_keyring
-  with_items:
-    - "cinder-backup/{{ ceph_cinder_keyring }}"
-    - "cinder-backup/{{ ceph_cinder_backup_keyring }}"
+  with_fileglob:
+    - "{{ node_custom_config }}/cinder/cinder-backup/ceph.client*"
+    - "{{ node_custom_config }}/cinder/{{ ansible_fqdn }}/cinder-backup/ceph.client*"
   when:
     - external_ceph_cephx_enabled | bool
     - inventory_hostname in groups['cinder-backup']
