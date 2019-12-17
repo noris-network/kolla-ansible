@@ -15,7 +15,12 @@
     dest: "{{ node_config_directory }}/glance-api/{{ ceph_glance_keyring }}"
     mode: "0660"
   become: true
-  when: inventory_hostname in groups['glance-api']
+  when:
+    - glance_services['glance-api'].host_in_groups | bool
+    - glance_services['glance-api'].enabled | bool
+  with_fileglob:
+    - "{{ node_custom_config }}/glance/ceph*"
+    - "{{ node_custom_config }}/glance/{{ ansible_fqdn }}/ceph*"
   notify:
     - Restart glance-api container
 
