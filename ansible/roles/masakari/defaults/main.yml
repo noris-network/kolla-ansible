@@ -40,7 +40,7 @@ masakari_services:
     group: masakari-hostmonitors
     enabled: true
     image: "{{ masakari_monitors_image_full }}"
-    volumes: "{{ masakari_instancemonitor_default_volumes + masakari_instancemonitor_extra_volumes }}"
+    volumes: "{{ masakari_hostmonitor_default_volumes + masakari_hostmonitor_extra_volumes }}"
     privileged: True
     dimensions: "{{ masakari_monitors_dimensions }}"
     ipc_mode: "host"
@@ -79,6 +79,7 @@ masakari_extra_volumes: "{{ default_extra_volumes }}"
 masakari_api_extra_volumes: "{{ masakari_extra_volumes }}"
 masakari_engine_extra_volumes: "{{ masakari_extra_volumes }}"
 masakari_instancemonitor_extra_volumes: "{{ masakari_extra_volumes }}"
+masakari_hostmonitor_extra_volumes: "{{ masakari_extra_volumes }}"
 
 masakari_api_default_volumes:
   - "{{ node_config_directory }}/masakari-api/:{{ container_config_directory }}/:ro"
@@ -99,7 +100,11 @@ masakari_instancemonitor_default_volumes:
   - "{{ '/etc/timezone:/etc/timezone:ro' if kolla_base_distro in ['debian', 'ubuntu'] else '' }}"
   - "kolla_logs:/var/log/kolla/"
   - "{{ kolla_dev_repos_directory ~ '/masakari/masakari:/var/lib/kolla/venv/lib/python' ~ distro_python_version ~ '/site-packages/masakari' if masakari_dev_mode | bool else '' }}"
-
+masakari_hostmonitor_default_volumes:
+  - "{{ node_config_directory }}/masakari-hostmonitor/:{{ container_config_directory }}/:ro"
+  - "/etc/localtime:/etc/localtime:ro"
+  - "kolla_logs:/var/log/kolla/"
+  - "{{ kolla_dev_repos_directory ~ '/masakari/masakari:/var/lib/kolla/venv/lib/python2.7/site-packages/masakari' if masakari_dev_mode | bool else '' }}"
 
 ####################
 # OpenStack
