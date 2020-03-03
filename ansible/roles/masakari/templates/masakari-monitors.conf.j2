@@ -15,3 +15,7 @@ api_interface = internal
 
 [libvirt]
 connection_uri = "qemu+tcp://{{ migration_interface_address | put_address_in_context('url') }}/system"
+
+[host]
+corosync_multicast_interfaces = {{ masakari_corosync_multicast_interfaces | default(omit) }}
+corosync_multicast_ports = {{ masakari_corosync_multicast_ports | default(omit) }}
