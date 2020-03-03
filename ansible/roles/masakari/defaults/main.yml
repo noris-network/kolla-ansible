@@ -45,6 +45,8 @@ masakari_services:
     dimensions: "{{ masakari_monitors_dimensions }}"
     ipc_mode: "host"
 
+masakari_corosync_multicast_ports: "5405"
+
 
 ####################
 # Database
@@ -102,6 +104,7 @@ masakari_instancemonitor_default_volumes:
   - "{{ kolla_dev_repos_directory ~ '/masakari/masakari:/var/lib/kolla/venv/lib/python' ~ distro_python_version ~ '/site-packages/masakari' if masakari_dev_mode | bool else '' }}"
 masakari_hostmonitor_default_volumes:
   - "{{ node_config_directory }}/masakari-hostmonitor/:{{ container_config_directory }}/:ro"
+  - "{{ node_config_directory }}/masakari-hostmonitor/fake-systemctl:/var/lib/kolla/venv/bin/systemctl:ro"
   - "/dev/shm:/dev/shm:shared"
   - "/run:/run:shared"
   - "/etc/localtime:/etc/localtime:ro"
