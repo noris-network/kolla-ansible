@@ -102,6 +102,7 @@ masakari_instancemonitor_default_volumes:
   - "{{ kolla_dev_repos_directory ~ '/masakari/masakari:/var/lib/kolla/venv/lib/python' ~ distro_python_version ~ '/site-packages/masakari' if masakari_dev_mode | bool else '' }}"
 masakari_hostmonitor_default_volumes:
   - "{{ node_config_directory }}/masakari-hostmonitor/:{{ container_config_directory }}/:ro"
+  - "{{ node_config_directory }}/corosync/:/etc/corosync/:ro"
   - "/etc/localtime:/etc/localtime:ro"
   - "kolla_logs:/var/log/kolla/"
   - "{{ kolla_dev_repos_directory ~ '/masakari/masakari:/var/lib/kolla/venv/lib/python2.7/site-packages/masakari' if masakari_dev_mode | bool else '' }}"
