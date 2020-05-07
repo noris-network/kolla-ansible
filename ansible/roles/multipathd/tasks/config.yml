@@ -25,7 +25,11 @@
   notify:
     - Restart multipathd container
 
-- name: Copying over multipath.conf
+- name: Check if multipath.conf exists in node_custom_config
+  local_action: stat path={{ node_custom_config }}/multipath.conf
+  register: stat_multipath_conf
+
+- name: Copying over multipath.conf (template)
   template:
     src: "multipath.conf.j2"
     dest: "{{ node_config_directory }}/{{ item.key }}/multipath.conf"
@@ -34,6 +38,21 @@
   when:
     - inventory_hostname in groups[item.value.group]
     - item.value.enabled | bool
+    - ! stat_multipath_conf.stat.exists
+  with_dict: "{{ multipathd_services }}"
+  notify:
+    - Restart multipathd container
+
+- name: Copying over multipath.conf (custom_config)
+  template:
+    src: "{{ node_custom_config }}/multipath.conf"
+    dest: "{{ node_config_directory }}/{{ item.key }}/multipath.conf"
+    mode: "0660"
+  become: true
+  when:
+    - inventory_hostname in groups[item.value.group]
+    - item.value.enabled | bool
+    - stat_multipath_conf.stat.exists
   with_dict: "{{ multipathd_services }}"
   notify:
     - Restart multipathd container
