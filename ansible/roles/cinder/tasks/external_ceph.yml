@@ -22,7 +22,7 @@
 
 - name: Copy over Ceph keyring files for cinder-volume
   copy:
-    src: "{{ node_custom_config }}/cinder/cinder-volume/{{ ceph_cinder_keyring }}"
+    src: "{{ item }}"
     dest: "{{ node_config_directory }}/cinder-volume/"
     mode: "0660"
   become: true
@@ -38,7 +38,7 @@
 
 - name: Copy over Ceph keyring files for cinder-backup
   copy:
-    src: "{{ node_custom_config }}/cinder/{{ item }}"
+    src: "{{ item }}"
     dest: "{{ node_config_directory }}/cinder-backup/"
     mode: "0660"
   become: true

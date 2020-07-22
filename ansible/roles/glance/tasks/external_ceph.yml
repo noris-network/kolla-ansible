@@ -1,7 +1,9 @@
 ---
 - name: Copy over ceph.conf for Glance
-  template:
-    src: "{{ node_custom_config }}/glance/ceph.conf"
+  merge_configs:
+    sources:
+      - "{{ node_custom_config }}/glance/ceph.conf"
+      - "{{ node_custom_config }}/glance/{{ ansible_fqdn }}/ceph.conf"
     dest: "{{ node_config_directory }}/glance-api/ceph.conf"
     mode: "0660"
   become: true
@@ -11,7 +13,7 @@
 
 - name: Copy over ceph Glance keyring
   copy:
-    src: "{{ node_custom_config }}/glance/{{ ceph_glance_keyring }}"
+    src: "{{ item }}"
     dest: "{{ node_config_directory }}/glance-api/{{ ceph_glance_keyring }}"
     mode: "0660"
   become: true
