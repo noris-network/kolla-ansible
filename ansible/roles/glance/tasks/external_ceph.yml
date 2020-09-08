@@ -21,8 +21,8 @@
     - glance_services['glance-api'].host_in_groups | bool
     - glance_services['glance-api'].enabled | bool
   with_fileglob:
-    - "{{ node_custom_config }}/glance/ceph*"
-    - "{{ node_custom_config }}/glance/{{ ansible_fqdn }}/ceph*"
+    - "{{ node_custom_config }}/glance/ceph.client*"
+    - "{{ node_custom_config }}/glance/{{ ansible_fqdn }}/ceph.client*"
   notify:
     - Restart glance-api container
 
